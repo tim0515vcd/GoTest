@@ -1,0 +1,39 @@
+# To ensure app dependencies are ported from your virtual environment/host machine into your container, run 'pip freeze > requirements.txt' in the terminal to overwrite this file
+django==3.2.14
+gunicorn==20.1.0
+djangorestframework==3.12.2
+django-settings-export==1.2.1
+django-proxy==1.2.1
+requests==2.24.0
+# celery==5.0.2
+channels==3.0.2
+channels-redis==3.2.0
+coverage==5.3
+django-celery-beat==2.1.0
+django-tinymce==3.1.0
+# Pillow==8.0.1
+python-docx==0.8.10
+uvicorn==0.12.2
+redis==3.5.3
+backports.csv==1.0.7
+importlib_metadata==3.1.1
+PyPDF2==1.26.0
+pdfminer.six==20201018
+tzlocal==2.1
+websockets==8.1
+Flower==0.9.7
+mistune==0.8.4
+Werkzeug==1.0.1
+django-extensions==3.1.1
+# pymssql==2.2.1
+PyMySQL==1.0.2
+# psycopg2-binary==2.8.6
+click==7.1.2
+luqum==0.11.0
+mysqlclient==2.1.0
+dj-static==0.0.6
+static3==0.7.0
+xmltodict==0.13.0
+toml==0.10.2
+# easysnmp==0.2.4
+# mod_wsgi==4.6.8

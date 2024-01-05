@@ -15,11 +15,17 @@ from account.serializers import (
     ChangePasswordPostSerializer,
     UserListSerializer,
     RoleSerializer,
+    ForgotPasswordPostSerializer,
+    SetPasswordGetSerializer,
+    SetPasswordPostSerializer,
 )
-from account.models import Account, Role, SystemPermissions
+from account.models import Account, Role, SystemPermissions, AccountAuth
 from gotestlib.account import check_password_pattern, get_password_pattern
 from gotestlib.utils import check_serializer_errors
 from gotestlib.permissions import RolePermission
+import uuid
+
+PARAMETER_ERROR = "parameter error"
 
 
 # Create your views here.
@@ -28,7 +34,7 @@ class LoginView(BaseLoginView):
     Override django.contrib.auth.views.LoginView
     """
 
-    template = "login.html"
+    template = "sign-in.html"
 
     def get(self, request):
         """
@@ -551,3 +557,186 @@ class RoleView(generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def create_accountauth(account, auth_type):
+    # 用 uuid4 產生隨機字串用以驗證帳戶
+    sign_up_code = uuid.uuid4().hex
+    AccountAuth.objects.create(
+        auth_type=auth_type, account=account, code=sign_up_code, is_authenticated=False
+    )
+    return sign_up_code
+
+
+class ForgotPasswordView(generics.GenericAPIView):
+    serializer_class = ForgotPasswordPostSerializer
+    permission_classes = (AllowAny,)
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
+
+    def get(self, request):
+        return Response(
+            template_name="forgot-password.html",
+        )
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.data.get("username", None)
+        else:
+            return Response(
+                {"result": _(PARAMETER_ERROR), "errors": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            account = Account.objects.get(username=username)
+            display_name = account.display_name
+            if account.is_ad_account:
+                return Response(
+                    {
+                        "result": _(
+                            "This account is an AD account, please contact AD admin."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Exception:
+            return Response(
+                {"result": _("Account not found")}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        code = create_accountauth(account, AccountAuth.auth_type_choices.PASSWORD_RESET)
+        # 驗證帳號網址
+        auth_url = request.build_absolute_uri("/resetpassword?c=" + code)
+        # site_ip, unused = get_localip()
+        # # 送出驗證信
+        # content = render_to_string(
+        #     "email/signup_auth.html",
+        #     {"display_name": display_name, "auth_url": auth_url, "ip": site_ip},
+        # )
+        # result = safe_mail(
+        #     subject="SAFE3.0 forgot password",
+        #     recipients=[account.email],
+        #     body=content,
+        # )
+        result = True
+        if not result:
+            return Response(
+                {"result": _("Please contact admin")},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(
+            {"result": _("Reset password email send success")},
+            status=status.HTTP_200_OK,
+        )
+
+
+class ResetPasswordView(generics.GenericAPIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return SetPasswordPostSerializer
+        return SetPasswordGetSerializer
+
+    def get(self, request):
+        serializer = self.get_serializer(data=request.query_params)
+        template_name = "resetpassword.html"
+        if serializer.is_valid():
+            code = serializer.data.get("c", None)
+        else:
+            return Response(
+                {"result": _("URL invalid")},
+                template_name=template_name,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            accountauth = AccountAuth.objects.select_related("account").get(
+                code=code, is_authenticated=False
+            )
+            user_email = accountauth.account.email
+        except Exception:
+            return Response(
+                {"result": _("URL invalid, please contact admin")},
+                template_name=template_name,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 帳號驗證須於 10 分鐘內
+        if timezone.now() > (accountauth.create_time + timezone.timedelta(minutes=10)):
+            return Response(
+                {"result": _("The URL has expired, please reset the password again")},
+                template_name=template_name,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "email": user_email,
+                "code": code,
+                "password_pattern": get_password_pattern(),
+            },
+            template_name=template_name,
+        )
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.data.get("email", None)
+            code = serializer.data.get("code", None)
+            password = serializer.data.get("password", None)
+            password_confirm = serializer.data.get("password_confirm", None)
+        else:
+            return Response(
+                {"result": PARAMETER_ERROR, "errors": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            accountauth = AccountAuth.objects.select_related("account").get(
+                code=code, is_authenticated=False
+            )
+        except Exception:
+            return Response(
+                {"result": _("URL invalid, please contact admin")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if timezone.now() > (accountauth.create_time + timezone.timedelta(minutes=10)):
+            return Response(
+                {"result": _("The URL has expired, please reset the password again")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not check_password_pattern(password):
+            return Response(
+                {"result": _("Insufficient password complexity")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if password != password_confirm:
+            return Response(
+                {"result": _("Password must be the same as password confirm")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        account = accountauth.account
+        if account.email != email:
+            return Response(
+                {"result": _("User email error")}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            accountauth.is_authenticated = True
+            accountauth.save()
+            account = Account.objects.get(email=email)
+            account.set_password(password)
+            account.save()
+            return Response(
+                {"result": _("Reset password success")}, status=status.HTTP_200_OK
+            )
+        except Exception:
+            return Response(
+                {"result": _("User email error")}, status=status.HTTP_400_BAD_REQUEST
+            )

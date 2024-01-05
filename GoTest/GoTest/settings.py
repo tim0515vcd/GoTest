@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "account",
     "base",
+    "questionbank",
 ]
 
 MIDDLEWARE = [
@@ -124,7 +125,6 @@ LOGOUT_REDIRECT_URL = "/"
 
 STATIC_URL = "/static/"
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "GoTest", "static")
 
 # Default primary key field type

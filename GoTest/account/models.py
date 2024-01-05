@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from datetime import datetime
 import pytz
 from django.conf import settings
+from django.utils import timezone
 
 # Create your models here.
 DEFAULT_TIME = datetime(1970, 1, 1, tzinfo=pytz.timezone(settings.TIME_ZONE))
@@ -79,3 +80,30 @@ class Account(AbstractUser):
     class Meta:
         verbose_name = "Account"
         verbose_name_plural = "Account"
+
+
+class AccountAuth(models.Model):
+    """帳號登入驗證用"""
+
+    class auth_type_choices(models.TextChoices):
+        SIGN_UP = "SIGN_UP", "Sign Up"
+        PASSWORD_RESET = "PASSWORD_RESET", "Password Reset"
+        ADD_USER = "ADD_USER", "Add User"
+        RESEND_VALIDATION = "RESEND_VALIDATION", "Resend validation email"
+
+    auth_type = models.CharField(
+        "Auth Type", max_length=20, choices=auth_type_choices.choices
+    )
+    account = models.ForeignKey(
+        Account, on_delete=models.CASCADE, related_name="accountauth"
+    )
+    code = models.CharField("Code", max_length=32)
+    create_time = models.DateTimeField("Create Time", editable=False)
+    update_time = models.DateTimeField("Update Time")
+    is_authenticated = models.BooleanField("Is Authenticated", default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.create_time = timezone.now()
+        self.update_time = timezone.now()
+        return super(AccountAuth, self).save(*args, **kwargs)

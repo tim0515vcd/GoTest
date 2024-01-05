@@ -1,6 +1,6 @@
-from django.contrib import admin
 from django.urls import path
+from questionbank.views import QuestionCategoryView
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
+    path("questioncategory/", QuestionCategoryView.as_view(), name="questioncategory"),
 ]

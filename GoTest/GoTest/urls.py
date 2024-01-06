@@ -27,7 +27,7 @@ urlpatterns = [
     ),
     path("base/", include("base.urls")),
     path("account/", include("account.urls")),
-    path("questionbank/", include("questionbank.urls")),
+    path("questionbank", include("questionbank.urls")),
     path("resetpassword", ResetPasswordView.as_view(), name="resetpassword"),
     path("forgot", ForgotPasswordView.as_view(), name="forgot"),
     path("home", IndexView.as_view(), name="home"),

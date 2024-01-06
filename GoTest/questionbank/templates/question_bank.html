@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% block page_css %}
+{% endblock %}
+{% block page_pretitle %}
+Pretitle
+{% endblock page_pretitle %}
+{% block page_title %}
+Question Bank
+{% endblock page_title %}
+{% block page_title_actions %}
+{% if question_bank %}
+<div class="col-auto ms-auto d-print-none">
+    <div class="btn-list">
+        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_question_bank">
+            <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+            Add New Question Bank
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock page_title_actions %}
+{% block page_content %}
+{% if not question_bank %}
+{% include "blank.html" with type="question_bank" %}
+{% else %}
+<div class="row row-cards">
+    {% for category in question_bank %}
+    <div class="col-md-6 col-lg-3">
+        <a href="{% url 'questions' category.id %}" class="card card-link card-link-pop">
+            <div class="card-status-start bg-primary"></div>
+            <div class="card-body">{{ category.name }}</div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<div class="modal modal-blur fade" id="modal_add_question_bank" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form id="create_new_category" data-parsley-validate>
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Question Bank</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Question Bank</label>
+                        <input type="text" class="form-control mb-2" name="name" placeholder="Question Bank Name" required autofocus>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary ms-auto">
+                        <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                        Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}
+{% block page_script %}
+<script>
+    $(document).ready(function () {
+        submitFormWithAjax({
+            formId: "#create_new_category",
+            url: "{% url 'questionbank' %}",
+            method: "POST",
+            successMessage: "{% trans 'Create Success' %}",
+            errorMessage: "{% trans 'Create Failed' %}",
+            successCallback: () => location.reload(),
+            errorCallback: () => location.reload(),
+        });
+    });
+</script>
+{% endblock page_script %}

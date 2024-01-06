@@ -1,17 +1,24 @@
 from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
+from questionbank.models import Question, QuestionBank, Answer, Choice
+from questionbank.serializers import QuestionBankSerializer
 
 # Create your views here.
 
 
-class QuestionCategoryView(generics.GenericAPIView):
+class QuestionBankView(generics.GenericAPIView):
     """[題庫選擇]"""
 
     permission_classes = (IsAuthenticated,)
-    renderer_classes = [TemplateHTMLRenderer]
+    renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
+    serializer_class = QuestionBankSerializer
+
+    def get_object(self):
+        return QuestionBank.objects.filter(account=self.request.user)
 
     def get(self, request):
         """[題庫選擇]
@@ -19,10 +26,60 @@ class QuestionCategoryView(generics.GenericAPIView):
         Returns:
             render : question_category.html
         """
-        # rule_obj = IndexInfo.objects.first()
         return Response(
-            template_name="question_category.html",
+            template_name="question_bank.html",
             data={
-                "question_category": False,
+                "question_bank": self.get_object(),
+            },
+        )
+    def post(self, request):
+        """[建立題庫]
+
+        Args:
+            request (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        serializer = self.get_serializer(data={
+            "name": request.POST.get("name"),
+            "account": request.user.id
+        })
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "result": _("PARAMETER_ERROR"),
+                    "errors": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer.save()
+
+        return Response(
+            {"result": _("Create success")}, status=status.HTTP_200_OK
+        )
+
+class QuestionsView(generics.GenericAPIView):
+    """[題庫選擇]"""
+
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
+    serializer_class = QuestionBankSerializer
+
+    def get_object(self, pk):
+        return Question.objects.filter(question_bank=pk)
+
+    def get(self, request , pk):
+        """[題庫選擇]
+
+        Returns:
+            render : question_category.html
+        """
+        return Response(
+            template_name="questions.html",
+            data={
+                "question_type": Question.QUESTION_TYPES,
+                "question_bank": QuestionBank.objects.filter(pk=pk).first(),
+                "questions": self.get_object(pk=pk),
             },
         )

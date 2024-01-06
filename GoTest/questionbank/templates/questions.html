@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% block page_css %}
+{% endblock %}
+{% block page_pretitle %}
+Subject
+{% endblock page_pretitle %}
+{% block page_title %}
+{{ question_bank.name }}
+{% endblock page_title %}
+{% block page_title_actions %}
+{% if questions %}
+<div class="col-auto ms-auto d-print-none">
+    <div class="btn-list">
+        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_question">
+            <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+            Add New Question Bank
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock page_title_actions %}
+{% block page_content %}
+{% if not questions %}
+{% include "blank.html" with type="question" %}
+{% else %}
+<div class="row row-cards">
+    {% for question in questions %}
+    <div class="col-md-6 col-lg-3">
+        <a href="{% url 'questioncategory' category.id %}" class="card card-link card-link-pop">
+            <div class="card-status-start bg-primary"></div>
+            <div class="card-body">{{ question.question_text }}</div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<div class="modal modal-blur fade" id="modal_add_question" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form id="create_new_question" data-parsley-validate>
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Question</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Qestion type</label>
+                    <div class="form-selectgroup-boxes row mb-3">
+                        {% for type in question_type %}
+                        <div class="col-lg-3 mb-2">
+                            <label class="form-selectgroup-item">
+                                <input type="radio" name="question_type" value="{{ type.0 }}" class="form-selectgroup-input">
+                                <span class="form-selectgroup-label d-flex align-items-center p-3">
+                                    <span class="me-3">
+                                        <span class="form-selectgroup-check"></span>
+                                    </span>
+                                    <span class="form-selectgroup-label-content">
+                                        <span class="form-selectgroup-title strong mb-1">{{ type.1 }}</span>
+                                    </span>
+                                </span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary ms-auto">
+                        <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                        Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}
+{% block page_script %}
+<script>
+    $(document).ready(function () {
+        submitFormWithAjax({
+            formId: "#create_new_category",
+            url: "{% url 'questionbank' %}",
+            method: "POST",
+            successMessage: "{% trans 'Create Success' %}",
+            errorMessage: "{% trans 'Create Failed' %}",
+            successCallback: () => location.reload(),
+            errorCallback: () => location.reload(),
+        });
+    });
+</script>
+{% endblock page_script %}

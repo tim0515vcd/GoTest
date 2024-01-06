@@ -32,6 +32,7 @@ class QuestionBankView(generics.GenericAPIView):
                 "question_bank": self.get_object(),
             },
         )
+
     def post(self, request):
         """[建立題庫]
 
@@ -41,10 +42,9 @@ class QuestionBankView(generics.GenericAPIView):
         Returns:
             _type_: _description_
         """
-        serializer = self.get_serializer(data={
-            "name": request.POST.get("name"),
-            "account": request.user.id
-        })
+        serializer = self.get_serializer(
+            data={"name": request.POST.get("name"), "account": request.user.id}
+        )
         if not serializer.is_valid():
             return Response(
                 {
@@ -55,9 +55,8 @@ class QuestionBankView(generics.GenericAPIView):
             )
         serializer.save()
 
-        return Response(
-            {"result": _("Create success")}, status=status.HTTP_200_OK
-        )
+        return Response({"result": _("Create success")}, status=status.HTTP_200_OK)
+
 
 class QuestionsView(generics.GenericAPIView):
     """[題庫選擇]"""
@@ -69,17 +68,19 @@ class QuestionsView(generics.GenericAPIView):
     def get_object(self, pk):
         return Question.objects.filter(question_bank=pk)
 
-    def get(self, request , pk):
+    def get(self, request, pk):
         """[題庫選擇]
 
         Returns:
-            render : question_category.html
+            render : questions.html
         """
         return Response(
             template_name="questions.html",
             data={
                 "question_type": Question.QUESTION_TYPES,
-                "question_bank": QuestionBank.objects.filter(pk=pk).first(),
+                "question_bank": QuestionBank.objects.filter(
+                    pk=pk, account=request.user
+                ).first(),
                 "questions": self.get_object(pk=pk),
             },
         )

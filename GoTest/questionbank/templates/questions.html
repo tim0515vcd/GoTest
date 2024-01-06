@@ -64,6 +64,18 @@ Subject
                             </label>
                         </div>
                         {% endfor %}
+                        <div class="col-md-12">
+                            <div class="mb-3 mb-0">
+                                <label class="form-label">Question</label>
+                                <textarea rows="5" class="form-control" placeholder="Please type the question" value=""></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3 mb-0">
+                                <label class="form-label">Answer</label>
+                                <textarea rows="5" class="form-control" placeholder="Please type the question" value=""></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -86,7 +98,7 @@ Subject
 <script>
     $(document).ready(function () {
         submitFormWithAjax({
-            formId: "#create_new_category",
+            formId: "#create_new_question",
             url: "{% url 'questionbank' %}",
             method: "POST",
             successMessage: "{% trans 'Create Success' %}",

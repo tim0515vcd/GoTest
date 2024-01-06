@@ -5,7 +5,7 @@ from account.models import Account
 # Create your models here.
 class QuestionBank(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    name = models.CharField("題庫類別", max_length=100, unique=True)
+    name = models.CharField("題庫類別", max_length=100)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

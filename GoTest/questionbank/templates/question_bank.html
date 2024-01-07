@@ -4,10 +4,10 @@
 {% block page_css %}
 {% endblock %}
 {% block page_pretitle %}
-Pretitle
+{% trans 'Pretitle' %}
 {% endblock page_pretitle %}
 {% block page_title %}
-Question Bank
+{% trans 'Question Bank' %}
 {% endblock page_title %}
 {% block page_title_actions %}
 {% if question_bank %}
@@ -16,7 +16,7 @@ Question Bank
         <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_question_bank">
             <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-            Add New Question Bank
+            {% trans 'Add New Question Bank' %}
         </a>
     </div>
 </div>
@@ -29,9 +29,18 @@ Question Bank
 <div class="row row-cards">
     {% for category in question_bank %}
     <div class="col-md-6 col-lg-3">
-        <a href="{% url 'questions' category.id %}" class="card card-link card-link-pop">
-            <div class="card-status-start bg-primary"></div>
-            <div class="card-body">{{ category.name }}</div>
+        <a href="{% url 'questions' category.id %}" class="">
+            <div class="card card-link card-link-pop">
+                <div class="card-status-start bg-primary"></div>    
+                <div class="card-header">
+                    <h3 class="card-title">{{ category.name }}</h3>
+                    <div class="card-actions btn-actions">
+                        <a href="#" class="btn-action deleteQuestionBank" data-id="{{ category.id }}" data-name="{{ category.name }}"><!-- Download SVG icon from http://tabler-icons.io/i/x -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </a>
     </div>
     {% endfor %}
@@ -43,24 +52,24 @@ Question Bank
             <form id="create_new_question_bank" data-parsley-validate>
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title">Create New Question Bank</h5>
+                    <h5 class="modal-title">{% trans 'Create New Question Bank' %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Question Bank</label>
+                        <label class="form-label required">{% trans 'Question Bank' %}</label>
                         <input type="text" class="form-control mb-2" name="name" placeholder="Question Bank Name" required autofocus>
                     </div>
                 </div>
                 
                 <div class="modal-footer">
                     <a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
-                        Cancel
+                        {% trans 'Cancel' %}
                     </a>
                     <button type="submit" class="btn btn-primary ms-auto">
                         <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-                        Create
+                        {% trans 'Create' %}
                     </button>
                 </div>
             </form>
@@ -79,6 +88,30 @@ Question Bank
             errorMessage: "{% trans 'Create Failed' %}",
             successCallback: () => location.reload(),
             errorCallback: () => location.reload(),
+        });
+
+        $(".deleteQuestionBank").click((e) => {
+            e.preventDefault();
+            const questionBankId = $(e.currentTarget).data("id");
+            const questionBankName = $(e.currentTarget).data("name");
+            showWarningMessage({
+                title: "{% trans 'Delete Question Bank' %}",
+                text: `{% trans 'Are you sure you want to delete the Question Bank' %} “${questionBankName}”?`,
+                confirmButtonText: "{% trans 'Delete' %}",
+                showCancelButton: true,
+            }).then((result) => {
+                if (result.value) {
+                    sendAjaxRequest({
+                        method: "DELETE",
+                        url: "{% url 'delete_questionbank' 0 %}".replace("0", questionBankId),
+                        dataType: "json",
+                        headers: { "X-CSRFToken": '{{ csrf_token }}' },
+                        successMessage: "{% trans 'Question Bank have been deleted successfully' %}",
+                        errorMessage: "{% trans 'Delete uestion Bank failed' %}",
+                        successCallback: () => location.reload()
+                    });
+                }
+            });
         });
     });
 </script>

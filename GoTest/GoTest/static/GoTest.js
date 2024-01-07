@@ -1,5 +1,5 @@
 // Alert utils
-const confirmButtonColor = "#1A6BE4"
+const confirmButtonColor = "#206bc4"
 const showMessage = (option, icon) => {
     return Swal.fire({
         title: option.title || null,
@@ -135,7 +135,7 @@ const submitFormWithAjax = ({
         // Call Ajax
         sendAjaxRequest(ajaxConfig);
     };
-    console.log(formId)
+
     $(formId).submit(handleSubmit);
 };
 

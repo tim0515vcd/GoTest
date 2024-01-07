@@ -57,6 +57,30 @@ class QuestionBankView(generics.GenericAPIView):
 
         return Response({"result": _("Create success")}, status=status.HTTP_200_OK)
 
+    def delete(self, request, pk):
+        """[刪除題庫]
+
+        Args:
+            request (_type_): _description_
+            pk (int): 欲刪除的 QuestionBank 的PK值。
+
+        Returns:
+            Response: 刪除操作的回應
+        """
+        try:
+            question_bank = QuestionBank.objects.get(pk=pk, account=self.request.user)
+        except QuestionBank.DoesNotExist:
+            return Response(
+                {"result": _("QUESTION_BANK_NOT_FOUND")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        question_bank.delete()
+        return Response(
+            {"result": _("Question bank deleted successfully")},
+            status=status.HTTP_200_OK,
+        )
+
 
 class QuestionsView(generics.GenericAPIView):
     """[題庫選擇]"""
@@ -79,8 +103,11 @@ class QuestionsView(generics.GenericAPIView):
             data={
                 "question_type": Question.QUESTION_TYPES,
                 "question_bank": QuestionBank.objects.filter(
-                    pk=pk, account=request.user
+                    pk=pk, account=self.request.user
                 ).first(),
                 "questions": self.get_object(pk=pk),
             },
         )
+
+    def post(self, request, pk):
+        pass

@@ -23,6 +23,7 @@ class Question(models.Model):
 
     question_bank = models.ForeignKey(QuestionBank, on_delete=models.CASCADE)
     question_text = models.TextField()
+    question_details = models.TextField(blank=True)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -42,7 +43,6 @@ class Answer(models.Model):
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     text = models.TextField(blank=True)
-    anser = models.TextField(blank=True)
     is_correct = models.BooleanField(default=False)
 
     def __str__(self):
@@ -61,7 +61,6 @@ class Choice(models.Model):
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_text = models.TextField(blank=True)
-    anser = models.TextField(blank=True)
     is_correct = models.BooleanField(default=False)
 
     def __str__(self):

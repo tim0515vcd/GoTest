@@ -4,7 +4,7 @@
 {% block page_css %}
 {% endblock %}
 {% block page_pretitle %}
-Subject
+{% trans 'Subject' %}
 {% endblock page_pretitle %}
 {% block page_title %}
 {{ question_bank.name }}
@@ -16,7 +16,7 @@ Subject
         <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_question">
             <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-            Add New Question Bank
+            {% trans 'Add New Question Bank' %}
         </a>
     </div>
 </div>
@@ -43,16 +43,16 @@ Subject
             <form id="create_new_question" data-parsley-validate>
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title">Create New Question</h5>
+                    <h5 class="modal-title">{% trans 'Create New Question' %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <label class="form-label">Qestion type</label>
+                    <label class="form-label required">{% trans 'Qestion type' %}</label>
                     <div class="form-selectgroup-boxes row mb-3">
                         {% for type in question_type %}
                         <div class="col-lg-3 mb-2">
                             <label class="form-selectgroup-item">
-                                <input type="radio" name="question_type" value="{{ type.0 }}" class="form-selectgroup-input">
+                                <input type="radio" name="question_type" value="{{ type.0 }}" class="form-selectgroup-input" {% if forloop.first %} checked {% endif %}>
                                 <span class="form-selectgroup-label d-flex align-items-center p-3">
                                     <span class="me-3">
                                         <span class="form-selectgroup-check"></span>
@@ -64,29 +64,45 @@ Subject
                             </label>
                         </div>
                         {% endfor %}
+                        
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
                         <div class="col-md-12">
                             <div class="mb-3 mb-0">
-                                <label class="form-label">Question</label>
+                                <label class="form-label required">{% trans 'Question' %}</label>
                                 <textarea rows="5" class="form-control" placeholder="Please type the question" value=""></textarea>
                             </div>
                         </div>
                         <div class="col-md-12">
+                            <div class="mb-3 mb-0" id="optionList">
+                                <label class="form-label required">{% trans 'Options' %}</label>
+                            </div>
+                            
+                        </div>
+                        <div class="col-md-12">
                             <div class="mb-3 mb-0">
-                                <label class="form-label">Answer</label>
-                                <textarea rows="5" class="form-control" placeholder="Please type the question" value=""></textarea>
+                                <label class="form-label required">{% trans 'Answer' %}</label>
+                                <input rows="5" class="form-control" placeholder="Please type the Answer" value="">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3 mb-0">
+                                <label class="form-label">{% trans 'Details' %}</label>
+                                <textarea rows="5" class="form-control" placeholder="Please type the Details" value=""></textarea>
                             </div>
                         </div>
                     </div>
                 </div>
-                
                 <div class="modal-footer">
                     <a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
-                        Cancel
+                        {% trans 'Cancel' %}
                     </a>
                     <button type="submit" class="btn btn-primary ms-auto">
                         <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-                        Create
+                        {% trans 'Create' %}
                     </button>
                 </div>
             </form>
@@ -99,13 +115,34 @@ Subject
     $(document).ready(function () {
         submitFormWithAjax({
             formId: "#create_new_question",
-            url: "{% url 'questionbank' %}",
+            url: "{% url 'create_questions' question_bank.pk %}",
             method: "POST",
             successMessage: "{% trans 'Create Success' %}",
             errorMessage: "{% trans 'Create Failed' %}",
             successCallback: () => location.reload(),
             errorCallback: () => location.reload(),
         });
+        const optionListElement = $("#optionList");
+        const optionHtml = (option) => {
+            return `
+            <div class="input-group mb-2">
+                <span class="input-group-text">
+                  ${option.toUpperCase()}
+                </span>
+                <input type="text" class="form-control" placeholder="Answer ${option.toUpperCase()}" autocomplete="off">
+            </div>
+            `
+        }
+        const addOption = (option) => {
+            optionListElement.append(optionHtml(option));
+        }
+        const initOptionList = () => {
+            const options = ["A", "B", "C", "D", "E"];
+            options.forEach((option, index) => {
+                addOption(option);
+            });
+        }
+        initOptionList()
     });
 </script>
 {% endblock page_script %}

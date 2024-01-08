@@ -16,7 +16,7 @@
         <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_question">
             <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-            {% trans 'Add New Question Bank' %}
+            {% trans 'Add New Question' %}
         </a>
     </div>
 </div>
@@ -52,7 +52,7 @@
                         {% for type in question_type %}
                         <div class="col-lg-3 mb-2">
                             <label class="form-selectgroup-item">
-                                <input type="radio" name="question_type" value="{{ type.0 }}" class="form-selectgroup-input" {% if forloop.first %} checked {% endif %}>
+                                <input type="radio" name="question_type" value="{{ type.0 }}" id="{{ type.0 }}" class="form-selectgroup-input" {% if forloop.first %} checked {% endif %}>
                                 <span class="form-selectgroup-label d-flex align-items-center p-3">
                                     <span class="me-3">
                                         <span class="form-selectgroup-check"></span>
@@ -76,7 +76,7 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <div class="mb-3 mb-0" id="optionList">
+                            <div class="mb-3 mb-0" id="optionList" style="display: None;">
                                 <label class="form-label required">{% trans 'Options' %}</label>
                             </div>
                             
@@ -137,11 +137,24 @@
             optionListElement.append(optionHtml(option));
         }
         const initOptionList = () => {
-            const options = ["A", "B", "C", "D", "E"];
+            const options = ["A", "B", "C", "D"];
             options.forEach((option, index) => {
                 addOption(option);
             });
         }
+        const actions = {
+            single_choice: () => console.log("1"),
+            multiple_choice: () => optionListElement.show(),
+            short_answer: () => console.log("3"),
+            true_false: () => console.log("4")
+        };
+        $("input[name='question_type']").click((e) => {
+            const questionType = $(e.currentTarget).attr("id");
+            const action = actions[questionType];
+            if (action) {
+                action();
+            }
+        })
         initOptionList()
     });
 </script>

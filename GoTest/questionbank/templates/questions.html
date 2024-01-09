@@ -72,25 +72,20 @@
                         <div class="col-md-12">
                             <div class="mb-3 mb-0">
                                 <label class="form-label required">{% trans 'Question' %}</label>
-                                <textarea rows="5" class="form-control" placeholder="Please type the question" value=""></textarea>
+                                <textarea rows="5" class="form-control" placeholder="{% trans 'Please type the question' %}" value=""></textarea>
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <div class="mb-3 mb-0" id="optionList" style="display: None;">
+                            <div class="mb-3 mb-0" id="optionListParent" style="display: None;">
                                 <label class="form-label required">{% trans 'Options' %}</label>
+                                <div id="optionList"></div>
                             </div>
                             
                         </div>
                         <div class="col-md-12">
                             <div class="mb-3 mb-0">
-                                <label class="form-label required">{% trans 'Answer' %}</label>
-                                <input rows="5" class="form-control" placeholder="Please type the Answer" value="">
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="mb-3 mb-0">
-                                <label class="form-label">{% trans 'Details' %}</label>
-                                <textarea rows="5" class="form-control" placeholder="Please type the Details" value=""></textarea>
+                                <label class="form-label required">{% trans 'Answer Details' %}</label>
+                                <textarea rows="5" class="form-control" placeholder="{% trans 'Please type the answer details' %}" value=""></textarea>
                             </div>
                         </div>
                     </div>
@@ -123,13 +118,27 @@
             errorCallback: () => location.reload(),
         });
         const optionListElement = $("#optionList");
+        const optionListParentElement = $("#optionListParent");
+        const addIcon = () => {
+            return`
+            <a href="#" class="link-green ms-2 mt-2 add-new-option">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M9 12h6" /><path d="M12 9v6" /></svg>
+            </a>
+            `
+        }
         const optionHtml = (option) => {
             return `
             <div class="input-group mb-2">
-                <span class="input-group-text">
+                <span class="input-group-text answer-text">
                   ${option.toUpperCase()}
                 </span>
                 <input type="text" class="form-control" placeholder="Answer ${option.toUpperCase()}" autocomplete="off">
+                <span class="input-group-text">
+                    <input class="form-check-input m-0" type="checkbox">
+                </span>
+                <a href="#" class="link-red ms-2 mt-2 remove-option">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-minus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l6 0" /></svg>
+                </a>
             </div>
             `
         }
@@ -141,10 +150,13 @@
             options.forEach((option, index) => {
                 addOption(option);
             });
+            {% comment %} 在最後加入add icon {% endcomment %}
+            optionListParentElement.append(addIcon())
         }
+        const showOptionElement = () => optionListParentElement.show();
         const actions = {
             single_choice: () => console.log("1"),
-            multiple_choice: () => optionListElement.show(),
+            multiple_choice: () => showOptionElement(),
             short_answer: () => console.log("3"),
             true_false: () => console.log("4")
         };
@@ -154,8 +166,25 @@
             if (action) {
                 action();
             }
-        })
-        initOptionList()
+        });
+        $(document).on("click", ".add-new-option", (e) => {
+            {% comment %} 65是A,依照現在的數量去加,就會按照ABCD排序下去 {% endcomment %}
+            const option = String.fromCharCode(65 + optionList.childElementCount);
+            optionListElement.append(optionHtml(option));
+        });
+        {% comment %} 刪除選項 {% endcomment %}
+        $('#optionList').on('click', '.remove-option', function() {
+            $(this).closest('.input-group').remove();
+
+            {% comment %} 重新編號 {% endcomment %}
+            $('#optionList').children('.input-group').each(function(index) {
+                const option = String.fromCharCode(65 + index);
+                $(this).find('.answer-text').text(option);
+                $(this).find('input[type="text"]').attr('placeholder', `Answer ${option}`);
+            });
+        });
+
+        initOptionList();
     });
 </script>
 {% endblock page_script %}

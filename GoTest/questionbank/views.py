@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from questionbank.models import Question, QuestionBank, Answer, Choice
-from questionbank.serializers import QuestionBankSerializer
+from questionbank.serializers import QuestionBankSerializer, QuestionSerializer
 
 # Create your views here.
 
@@ -87,7 +87,7 @@ class QuestionsView(generics.GenericAPIView):
 
     permission_classes = (IsAuthenticated,)
     renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
-    serializer_class = QuestionBankSerializer
+    serializer_class = QuestionSerializer
 
     def get_object(self, pk):
         return Question.objects.filter(question_bank=pk)
@@ -110,4 +110,16 @@ class QuestionsView(generics.GenericAPIView):
         )
 
     def post(self, request, pk):
-        pass
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print("!!!!!!", serializer.errors)
+            return Response(
+                {
+                    "result": _("PARAMETER_ERROR"),
+                    "errors": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer.save()
+
+        return Response({"result": _("Create success")}, status=status.HTTP_200_OK)

@@ -52,7 +52,7 @@
                         {% for type in question_type %}
                         <div class="col-lg-3 mb-2">
                             <label class="form-selectgroup-item">
-                                <input type="radio" name="question_type" value="{{ type.0 }}" id="{{ type.0 }}" class="form-selectgroup-input" {% if forloop.first %} checked {% endif %}>
+                                <input type="radio" name="question_type" value="{{ type.0 }}" id="{{ type.0 }}" class="form-selectgroup-input" {% if forloop.first %} checked {% endif %} required autofocus>
                                 <span class="form-selectgroup-label d-flex align-items-center p-3">
                                     <span class="me-3">
                                         <span class="form-selectgroup-check"></span>
@@ -72,7 +72,7 @@
                         <div class="col-md-12">
                             <div class="mb-3 mb-0">
                                 <label class="form-label required">{% trans 'Question' %}</label>
-                                <textarea rows="5" class="form-control" placeholder="{% trans 'Please type the question' %}" value=""></textarea>
+                                <textarea rows="5" class="form-control" name="question" placeholder="{% trans 'Please type the question' %}" value=""></textarea>
                             </div>
                         </div>
                         <div class="col-md-12">
@@ -80,12 +80,43 @@
                                 <label class="form-label required">{% trans 'Options' %}</label>
                                 <div id="optionList"></div>
                             </div>
-                            
                         </div>
+                        <div class="col-md-12">
+                            <div class="mb-3" id="singleChoiceAnswerParent">
+                                <div class="form-label required">{% trans 'Answer' %}</div>
+                                <select class="form-select" name="single_choice_answer" id="singleChoiceAnswer" data-parsley-excluded>
+                                    <option value=""></option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                              </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3" id="trueFalseAnswerParent" style="display: None;">
+                                <div class="form-label required">{% trans 'Answer' %}</div>
+                                <div>
+                                    <label class="form-check form-check-inline" id="trueFalseAnswer">
+                                        <input class="form-check-input" type="radio" name="true_false_answer" value="true" data-parsley-multiple="true_false_answer" checked data-parsley-excluded>
+                                        <span class="form-check-label">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /></svg>
+                                        </span>
+                                    </label>
+                                    <label class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="true_false_answer" value="false" data-parsley-multiple="true_false_answer" data-parsley-excluded>
+                                        <span class="form-check-label">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="col-md-12">
                             <div class="mb-3 mb-0">
                                 <label class="form-label required">{% trans 'Answer Details' %}</label>
-                                <textarea rows="5" class="form-control" placeholder="{% trans 'Please type the answer details' %}" value=""></textarea>
+                                <textarea rows="5" class="form-control" name="answer_details" placeholder="{% trans 'Please type the answer details' %}" value=""></textarea>
                             </div>
                         </div>
                     </div>
@@ -108,17 +139,6 @@
 {% block page_script %}
 <script>
     $(document).ready(function () {
-        submitFormWithAjax({
-            formId: "#create_new_question",
-            url: "{% url 'create_questions' question_bank.pk %}",
-            method: "POST",
-            successMessage: "{% trans 'Create Success' %}",
-            errorMessage: "{% trans 'Create Failed' %}",
-            successCallback: () => location.reload(),
-            errorCallback: () => location.reload(),
-        });
-        const optionListElement = $("#optionList");
-        const optionListParentElement = $("#optionListParent");
         const addIcon = () => {
             return`
             <a href="#" class="link-green ms-2 mt-2 add-new-option">
@@ -143,7 +163,7 @@
             `
         }
         const addOption = (option) => {
-            optionListElement.append(optionHtml(option));
+            $("#optionList").append(optionHtml(option));
         }
         const initOptionList = () => {
             const options = ["A", "B", "C", "D"];
@@ -151,14 +171,42 @@
                 addOption(option);
             });
             {% comment %} 在最後加入add icon {% endcomment %}
-            optionListParentElement.append(addIcon())
+            $("#optionListParent").append(addIcon())
         }
-        const showOptionElement = () => optionListParentElement.show();
+        const isHidden = (id) => $(`#${id}`).css('display') === "none";
+        const showElement = (id) => {
+            if (isHidden(id)) {
+                $(`#${id}Parent`).show();
+                $(`#${id}`).removeAttr("data-parsley-excluded");
+            }
+        };
+        const hideElement = (id) => {
+            if (!isHidden(id)) {
+                $(`#${id}Parent`).hide();
+                $(`#${id}`).attr("data-parsley-excluded", "true");
+            }
+        };
         const actions = {
-            single_choice: () => console.log("1"),
-            multiple_choice: () => showOptionElement(),
-            short_answer: () => console.log("3"),
-            true_false: () => console.log("4")
+            single_choice: () => {
+                hideElement("optionList");
+                showElement("singleChoiceAnswer");
+                hideElement("trueFalseAnswer");
+            },
+            multiple_choice: () => {
+                showElement("optionList");
+                hideElement("singleChoiceAnswer");
+                hideElement("trueFalseAnswer");
+            },
+            short_answer: () => {
+                hideElement("optionList");
+                hideElement("singleChoiceAnswer");
+                hideElement("trueFalseAnswer");
+            },
+            true_false: () => {
+                hideElement("optionList");
+                hideElement("singleChoiceAnswer");
+                showElement("trueFalseAnswer");
+            }
         };
         $("input[name='question_type']").click((e) => {
             const questionType = $(e.currentTarget).attr("id");
@@ -167,10 +215,11 @@
                 action();
             }
         });
-        $(document).on("click", ".add-new-option", (e) => {
+        {% comment %} 新增選項 {% endcomment %}
+        $(document).on("click", ".add-new-option", () => {
             {% comment %} 65是A,依照現在的數量去加,就會按照ABCD排序下去 {% endcomment %}
             const option = String.fromCharCode(65 + optionList.childElementCount);
-            optionListElement.append(optionHtml(option));
+            $("#optionList").append(optionHtml(option));
         });
         {% comment %} 刪除選項 {% endcomment %}
         $('#optionList').on('click', '.remove-option', function() {
@@ -182,6 +231,23 @@
                 $(this).find('.answer-text').text(option);
                 $(this).find('input[type="text"]').attr('placeholder', `Answer ${option}`);
             });
+        });
+
+        $("#create_new_question").submit(function (e) {
+            e.preventDefault();
+            const form = $(this);
+            form.parsley().validate();
+            if (form.parsley().isValid()) {
+                submitFormWithAjax({
+                    formId: "#create_new_question",
+                    url: "{% url 'create_questions' question_bank.pk %}",
+                    method: "POST",
+                    successMessage: "{% trans 'Create Success' %}",
+                    errorMessage: "{% trans 'Create Failed' %}",
+                    successCallback: () => location.reload(),
+                    errorCallback: () => location.reload(),
+                });
+            }
         });
 
         initOptionList();

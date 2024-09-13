@@ -34,23 +34,20 @@ class LoginView(BaseLoginView):
     Override django.contrib.auth.views.LoginView
     """
 
-    template = "sign-in.html"
+    template = "login.html"
 
     def get(self, request):
         """
         先判斷是否要用驗證碼
         """
-        return render(
-            request,
-            self.template,
-        )
+        return render(request, self.template)
 
     def post(self, request, *args, **kwargs):
         """
         Override django.views.generic.edit.ProcessFormView 的 post 方法,
         檢查密碼是否輸入錯誤三次而被鎖定
         """
-        username = request.POST.get("username", None)
+        # username = request.POST.get("username", None)
         # user = Account.objects.filter(username=username, is_active=True).first()
 
         # 以下為 django 原始碼, 驗證登入資訊, is_valid 就會檢查帳密

@@ -3,25 +3,35 @@
 {% load i18n %}
 {% block page_css %}
 {% endblock %}
-{% block page_pretitle %}
-{% trans 'Subject' %}
-{% endblock page_pretitle %}
-{% block page_title %}
-{{ question_bank.name }}
-{% endblock page_title %}
-{% block page_title_actions %}
-{% if questions %}
-<div class="col-auto ms-auto d-print-none">
-    <div class="btn-list">
-        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_question">
-            <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-            {% trans 'Add New Question' %}
-        </a>
+{% block page_header %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <!-- Page pre-title -->
+        <div class="page-pretitle">
+            {% trans 'Subject' %}
+        </div>
+        <h2 class="page-title">
+            {{ question_bank.name }}
+        </h2>
+      </div>
+      <!-- Page title actions -->
+        {% if questions %}
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_question">
+                    <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                    {% trans 'Add New Question' %}
+                </a>
+            </div>
+        </div>
+        {% endif %}
     </div>
+  </div>
 </div>
-{% endif %}
-{% endblock page_title_actions %}
+{% endblock page_header %}
 {% block page_content %}
 {% if not questions %}
 {% include "blank.html" with type="question" %}
@@ -166,14 +176,14 @@
             $("#optionList").append(optionHtml(option));
         }
         const initOptionList = () => {
-            const options = ["A", "B", "C", "D"];
+            const options = ["A", "B", "C", "D", "E"];
             options.forEach((option, index) => {
                 addOption(option);
             });
             {% comment %} 在最後加入add icon {% endcomment %}
             $("#optionListParent").append(addIcon())
         }
-        const isHidden = (id) => $(`#${id}`).css('display') === "none";
+        const isHidden = (id) => $(`#${id}Parent`).css('display') === "none";
         const showElement = (id) => {
             if (isHidden(id)) {
                 $(`#${id}Parent`).show();

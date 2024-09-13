@@ -149,17 +149,17 @@
               <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
                 <span class="avatar avatar-sm" style="background-image: url({% static 'static/avatars/000m.jpg' %})"></span>
                 <div class="d-none d-xl-block ps-2">
-                  <div>Paweł Kuna</div>
+                  <div>{{ request.user.username }}</div>
                   <div class="mt-1 small text-muted">UI Designer</div>
                 </div>
               </a>
               <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                 <a href="#" class="dropdown-item">Status</a>
-                <a href="./profile.html" class="dropdown-item">Profile</a>
+                <a href="{% url 'profile' %}" class="dropdown-item">Profile</a>
                 <a href="#" class="dropdown-item">Feedback</a>
                 <div class="dropdown-divider"></div>
                 <a href="./settings.html" class="dropdown-item">Settings</a>
-                <a href="./sign-in.html" class="dropdown-item">Logout</a>
+                <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
               </div>
             </div>
           </div>
@@ -208,26 +208,8 @@
       </header>
       <div class="page-wrapper">
         <!-- Page header -->
-        <div class="page-header d-print-none">
-          <div class="container-xl">
-            <div class="row g-2 align-items-center">
-              <div class="col">
-                <!-- Page pre-title -->
-                <div class="page-pretitle">
-                  {% block page_pretitle %}
-                  {% endblock page_pretitle %}
-                </div>
-                <h2 class="page-title">
-                  {% block page_title %}
-                  {% endblock page_title %}
-                </h2>
-              </div>
-              <!-- Page title actions -->
-              {% block page_title_actions %}
-              {% endblock page_title_actions %}
-            </div>
-          </div>
-        </div>
+        {% block page_header %}
+        {% endblock page_header %}
         <!-- Page body -->
         <div class="page-body">
           <div class="container-xl">

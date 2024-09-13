@@ -21,7 +21,9 @@ class Question(models.Model):
         ("true_false", "是非題"),
     )
 
-    question_bank = models.ForeignKey(QuestionBank, on_delete=models.CASCADE)
+    question_bank = models.ForeignKey(
+        QuestionBank, related_name="questions", on_delete=models.CASCADE
+    )
     question_text = models.TextField()
     question_details = models.TextField(blank=True)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)

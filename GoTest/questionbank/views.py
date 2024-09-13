@@ -6,6 +6,7 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from questionbank.models import Question, QuestionBank, Answer, Choice
 from questionbank.serializers import QuestionBankSerializer, QuestionSerializer
+from django.db.models import Count
 
 # Create your views here.
 
@@ -18,7 +19,9 @@ class QuestionBankView(generics.GenericAPIView):
     serializer_class = QuestionBankSerializer
 
     def get_object(self):
-        return QuestionBank.objects.filter(account=self.request.user)
+        return QuestionBank.objects.filter(account=self.request.user).annotate(
+            question_count=Count("questions")
+        )
 
     def get(self, request):
         """[題庫選擇]
